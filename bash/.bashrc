@@ -94,4 +94,4 @@ unsetproxy() {
     unset all_proxy
 }
 
-export NPM_TOKEN=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
+export NPM_TOKEN=
