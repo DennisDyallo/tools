@@ -69,6 +69,10 @@ qc() {
     git commit -m "0: refactoring $1"
 }
 
+gfm() {
+	git fetch origin main:main
+}
+
 setproxy() {
 	SR_PROXY=http://proxy.sr.se:8080
 	echo "Setting proxy $SR_PROXY for npm, yarn, git and bash proxy variables"
