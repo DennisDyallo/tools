@@ -1,0 +1,41 @@
+Hur avbrottsfri ompekning av 
+	sr-topsy-30days-episode
+		1. Skapa Q2 och reindexera in allting (april och maj)
+		2. Peka om write alias till Q2
+		3. Reindexera in datat (april) som hunnit komma med mellan steg 1 och 2. 
+	sr-topsy-read-episode
+		1. Skapa 2017_Q3-2018_Q4 och reindexera in allting (april och maj)
+		2. Peka om write alias till Q2
+		3. Reindexera in datat (april) som hunnit komma med mellan steg 1 och 2. 
+		
+
+POST /_aliases
+{
+  "actions": [
+    {
+      "remove": {
+        "index": "sr-topsy-episode-2017-10",
+        "alias": "sr-topsy-read-episode"
+      }
+    },
+    {
+      "remove": {
+        "index": "sr-topsy-episode-2017-11",
+        "alias": "sr-topsy-read-episode"
+      }
+    },
+    {
+      "remove": {
+        "index": "sr-topsy-episode-2017-12",
+        "alias": "sr-topsy-read-episode"
+      }
+    },
+	
+    {
+      "add": {
+        "index": "sr-topsy-episode-2017-q4",
+        "alias": "sr-topsy-read-episode"
+      }
+    }
+  ]
+}

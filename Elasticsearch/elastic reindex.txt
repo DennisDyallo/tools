@@ -1,0 +1,9 @@
+1 doc = 3.950334593818731e-4 mb
+
+
+Hur många dokument för att posta 10 mb bulkar?
+10 / 3.950334593818731e-4
+= 25314 dokument
+Borde kunna skicka 25314.
+
+Men om vi skickar 20 000 så blir det ungefär 8 mb per bulk

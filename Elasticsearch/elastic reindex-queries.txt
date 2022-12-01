@@ -1,0 +1,130 @@
+#OBS Läs igenom allt oc kolla så att det verkar stämma
+
+PUT sr-topsy-episode-2017-q4
+
+#För att slippa replikera varje skrivning, aktiveras igen när allt är färdigt
+PUT sr-topsy-episode-2017-q4/_settings
+{
+  "number_of_replicas":0
+}
+
+# Reindex 1 (kvartalsvis)
+POST _reindex?slices=4&wait_for_completion=false
+{
+  "source": {
+    "size": 10000,
+    "index": ["sr-topsy-episode-2017-10","sr-topsy-episode-2017-11","sr-topsy-episode-2017-12"],
+    "_source": {
+      "excludes": [
+        "serviceName",
+        "*.userIp",
+        "sourceName"
+      ]
+    }
+  },
+  "dest": {
+    "index": "sr-topsy-episode-2017-q4"
+  }
+}
+GET _tasks/[Task-Id]
+GET _tasks?detailed=true&actions=*reindex
+# VARNING!! Termsaggregerering över ett readalias funkar inte om fältet som aggregeras har olika typer i olika index (integer, keyword)
+POST /_aliases
+{
+    "actions" : [
+        { "remove" : { "index" : "sr-topsy-episode-2017-10", "alias" : "sr-topsy-read-episode" } },
+        { "remove" : { "index" : "sr-topsy-episode-2017-11", "alias" : "sr-topsy-read-episode" } },
+        { "remove" : { "index" : "sr-topsy-episode-2017-12", "alias" : "sr-topsy-read-episode" } },
+        { "add" : 	 { "index" : "sr-topsy-episode-2017-q4", "alias" : "sr-topsy-read-episode" } }
+    ]
+}
+
+
+#OBS: Stegen nedan är för April och Maj - om du inte kör på April och Maj så skippa dessa!
+# Reindex 2 (april och maj)
+POST _reindex?slices=4&wait_for_completion=false
+{
+  "source": {
+    "size": 10000,
+    "index": ["sr-topsy-episode-2018-04","sr-topsy-episode-2018-05"],
+    "_source": {
+      "excludes": [
+        "serviceName",
+        "*.userIp",
+        "sourceName"
+      ]
+    }
+  },
+  "dest": {
+    "index": "sr-topsy-episode-2018-q2"
+  }
+}
+
+# Sätt write alias
+POST /_aliases
+{
+    "actions" : [
+        { "remove" : { "index" : "sr-topsy-episode-2018-05", "alias" : "sr-topsy-write-episode" } },
+        { "add" : 	 { "index" : "sr-topsy-episode-2018-q2", "alias" : "sr-topsy-write-episode" } }
+    ]
+}
+
+# Reindex 3: Reindexera igen för att få med det data (i Maj) som hann skrivas efter att vi omindexerat (steg: Reindex 2)
+POST _reindex?slices=4&wait_for_completion=false
+{
+  "conflicts": "proceed",
+  "source": {
+    "size": 10000,
+    "index": ["sr-topsy-episode-2018-05"],
+    "_source": { "excludes": [ "*.userIp" ] }
+  },
+  "dest": {
+    "index": "sr-topsy-episode-2018-q2",
+	"op_type": "create"
+  }
+}
+
+# Sätt read alias 
+POST /_aliases
+{
+    "actions" : [
+        { "remove" : { "index" : "sr-topsy-episode-2018-05", "alias" : "sr-topsy-read-episode" } },
+        { "add" : 	 { "index" : "sr-topsy-episode-2018-q2", "alias" : "sr-topsy-read-episode" } },
+		{ "remove" : { "index" : "sr-topsy-episode-2018-05", "alias" : "sr-topsy-30days-episode" } },
+        { "add" : 	 { "index" : "sr-topsy-episode-2018-q2", "alias" : "sr-topsy-90days-episode" } }
+    ]
+}
+
+
+# Deleta bara när du kört klart ALL data för denna tpen
+#DELETE sr-topsy-episode-2017-07
+#DELETE sr-topsy-episode-2017-08
+#DELETE sr-topsy-episode-2017-09
+#DELETE sr-topsy-episode-2017-10
+#DELETE sr-topsy-episode-2017-11
+#DELETE sr-topsy-episode-2017-12
+#DELETE sr-topsy-episode-2018-01
+#DELETE sr-topsy-episode-2018-02
+#DELETE sr-topsy-episode-2018-03
+#DELETE sr-topsy-episode-2018-04
+#DELETE sr-topsy-episode-2018-05
+
+
+#Körs när allting är klart för att skapa replica shards på de nya indexen
+PUT sr-topsy-read-*/_settings
+{
+  "number_of_replicas": 1
+}
+
+
+
+Reindex progress:
+
+#Episode 2018_Q1 ska va: 47 888 446
+#Episode 2018_Q1 gjord.
+#Episode 2018_Q2 gjord (ej maj).
+
+#Episode 2017_Q4 ska vara: 47 524 717 - TEST OK
+#Episode 2017_Q3 ska vara: 67 539 392 - TEST OK
+#Episode 2017_Q2 ska vara: 35 040 400 - TEST OK
+Episode klar
