@@ -32,7 +32,7 @@ function gitl {
 } 
 
 
-function setProxy() {
+function Set-Proxy() {
 	netsh winhttp show proxy
 	
 	$proxy = "http://proxy.sr.se:8080";
@@ -56,7 +56,7 @@ function setProxy() {
 	netsh winhttp set proxy proxy-server=$proxy bypass-list="127.0.0.1;localhost;*.sr.se"
 }
 
-function unsetProxy() {
+function Unset-Proxy() {
 	Clear-Variable $env:https_proxy
 	Clear-Variable $env:http_proxy
 
@@ -72,7 +72,7 @@ function unsetProxy() {
 	netsh winhttp reset proxy
 }
 
-function editProfile() {
+function Edit-Profile() {
 	code $env:profile
 }
 
