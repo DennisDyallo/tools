@@ -1,7 +1,11 @@
+# Load common environment variables
+source .env
+
 GREEN="\[\033[1;32m\]"
 WHITE="\[\033[1;37m\]"
 YELLOW="\[\033[1;33m\]"
 PS1="\w $YELLOW \$(parse_git_branch): $WHITE"
+
 
 parse_git_branch() {
   git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
@@ -74,15 +78,14 @@ gfm() {
 }
 
 setproxy() {
-	SR_PROXY=http://proxy.sr.se:8080
-	echo "Setting proxy $SR_PROXY for npm, yarn, git and bash proxy variables"
-    npm config set proxy $SR_PROXY
-    npm config set https-proxy $SR_PROXY
-    yarn config set proxy $SR_PROXY  
-    yarn config set https-proxy $SR_PROXY
-    git config --global http.proxy $SR_PROXY
-    git config --global https.proxy $SR_PROXY
-    export {http,https,ftp,all}_proxy=$SR_PROXY
+    echo "Setting proxy $PROXY for npm, yarn, git and bash proxy variables"
+    npm config set proxy $PROXY
+    npm config set https-proxy $PROXY
+    yarn config set proxy $PROXY  
+    yarn config set https-proxy $PROXY
+    git config --global http.proxy $PROXY
+    git config --global https.proxy $PROXY
+    export {http,https,ftp,all}_proxy=$PROXY
     export no_proxy=localhost,.sr.se
 }  
 
@@ -97,5 +100,3 @@ unsetproxy() {
     unset no_proxy
     unset all_proxy
 }
-
-export NPM_TOKEN=
