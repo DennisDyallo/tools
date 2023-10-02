@@ -1,24 +1,9 @@
-#function SetDeviceState([string] $Device, [string] $State){
-#	if($Device -eq "lights"){
-#		$deviceId = "ACCF2399582A"
-#	}
-#	elseif ($Device -eq "speakers"){
-#		$deviceId = "ACCF2399591C"
-#	}
-#	else{
-#		throw "Invalid device"
-#	}
-#
-#	$postParams = @{toMainPage = "set$State$deviceId"}
-#	Invoke-WebRequest -Uri http://localhost:8000/ -Method POST -Body $postParams
-#}
-#
-## Chocolatey profile
-#$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-#if (Test-Path($ChocolateyProfile)) {
-#  Import-Module "$ChocolateyProfile"
-#}
+$env:dev="C:\Users\dendya01\Documents\GitHub"
 
+$envPath = "C:\users\dendya01\.env"
+Get-Content $envPath | ForEach-Object {
+    [System.Environment]::SetEnvironmentVariable($_.Split('=')[0], $_.Split('=')[1], [System.EnvironmentVariableTarget]::Process)
+}
 
 Write-Host "Hello Dennis (from: $PSSCRIPTROOT\$($MyInvocation.Mycommand.Name))"
 
