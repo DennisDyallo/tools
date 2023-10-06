@@ -1,0 +1,29 @@
+[user]
+	name = Dennis Dyallo
+	email = dennis@dyallo.se
+
+[credential]
+	helper = wincred
+
+[push] 
+default = upstream 
+
+[core]
+  editor = code --wait
+  autocrlf = true 
+  longpaths = true 
+[diff]
+  tool = vscode
+[difftool "vscode"]
+  cmd = code --wait --diff $LOCAL $REMOTE
+[merge]
+  tool = vscode
+[mergetool "vscode"]
+  cmd = code --wait $MERGED
+[winUpdater]
+	recentlySeenVersion = 2.25.0.windows.1
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
