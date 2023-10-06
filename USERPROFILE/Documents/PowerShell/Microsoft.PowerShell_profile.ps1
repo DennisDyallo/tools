@@ -1,4 +1,3 @@
-# Location: C:\Users\Zouz\Documents\Powershell
 # Load the .env file and store common variables into environment
 
 Get-Content "$env:USERPROFILE\.env" | ForEach-Object {
