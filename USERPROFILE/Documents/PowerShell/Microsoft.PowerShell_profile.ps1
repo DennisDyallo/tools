@@ -1,21 +1,69 @@
-# Load the .env file and store common variables into environment
 
-Get-Content "$env:USERPROFILE\.env" | ForEach-Object {
-    [System.Environment]::SetEnvironmentVariable($_.Split('=')[0], $_.Split('=')[1], [System.EnvironmentVariableTarget]::Process)
+# This function loads the environment variables from the .env file in the user's
+# home directory. The .env file is a simple text file that contains the environment
+# variables in the format: VARIABLE_NAME=VARIABLE_VALUE
+function Load-Vars() {
+    Write-Host "Loading environment variables from $env:USERPROFILE\.env"
+    $variablesArray = @()
+    Get-Content "$env:USERPROFILE\.env" | ForEach-Object {
+        $name = $_.Split('=')[0]
+        $value = $_.Split('=')[1]
+        $variablesArray += $name
+
+        SetVariable $name $value
+    }
+
+    SetWslEnv $variablesArray
 }
 
-$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-$principal = New-Object System.Security.Principal.WindowsPrincipal($currentUser)
-$isElevated = $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
+# This function sets the WSL environment variable WSLENV to include the variables
+# that are set in the .env file. This is necessary to make the variables available
+# in WSL. The WSLEnv variable is a list of environment variables that should be
+# exported to WSL. The format is a colon-separated list of environment variable
+# names. The variable names are case-sensitive. The special value /p indicates
+# that all environment variables should be exported to WSL. The special value
+# /p:WSLENV indicates that the WSLENV variable should be exported to WSL.
+# See https://learn.microsoft.com/en-us/windows/wsl/filesystems#share-environment-variables-between-windows-and-wsl-with-wslenv
+# NOTE: Will not translate variables such as Windows paths into Unix paths. 
+# This code can be fixed to include the different flags (/u, /p, etc)
+# to allow for translation, as described in the above article 
+function SetWslEnv($variablesArray) {
+    $wslEnv = [System.Environment]::GetEnvironmentVariable("WSLENV")
+    if ($wslEnv -match "SR_SETTINGS") {
+        Write-Host "WSLENV already contains SR settings"
+        return
+    }
+
+    foreach ($item in $variablesArray) {
+        $concatenatedVars += $item + ":"
+    }
+    $concatenatedVars = $concatenatedVars.TrimEnd(':')
+    $fullWslEnvString = ([string]::IsNullOrEmpty($wslEnv) `
+            ? "SR_SETTINGS:" + $concatenatedVars `
+            : $wslEnv[-1] -eq ":" `
+                ? $wslEnv + "SR_SETTINGS" + $concatenatedVars ` # If last char is ":" then don't add ":" before appending
+                : $wslEnv + ":SR_SETTINGS" + $concatenatedVars) # If last char is not ":" then add ":" before appending
+
+    SetVariable "WSLENV" $fullWslEnvString
+}
+
+
+function SetVariable($name, $value) {
+    Write-Host "Setting environment variable $name = $value"
+    [System.Environment]::SetEnvironmentVariable($name, $value, [System.EnvironmentVariableTarget]::User)
+    [System.Environment]::SetEnvironmentVariable($name, $value, [System.EnvironmentVariableTarget]::Process)
+}
+
+function UnsetVariable($name) {
+    Write-Host "Unsetting environment variable $name"
+    [System.Environment]::SetEnvironmentVariable($name, $null, [System.EnvironmentVariableTarget]::User)
+    [System.Environment]::SetEnvironmentVariable($name, $null, [System.EnvironmentVariableTarget]::Process)
+}
 
 function SetProxy() {
-    netsh winhttp show proxy
-
-    Write-Host "Setting environment http_proxy: $env:PROXY"
-    [System.Environment]::SetEnvironmentVariable("http_proxy", $env:PROXY)
-   
-    Write-Host "Setting environment https_proxy: $env:PROXY"
-    [System.Environment]::SetEnvironmentVariable("https_proxy", $env:PROXY)
+    SetVariable "http_proxy" $env:PROXY
+    SetVariable "https_proxy" $env:PROXY
+    SetVariable "no_proxy" $env:NO_PROXY
 
     Write-Host "Setting npm proxy: $env:PROXY"
     npm config set https-proxy $env:PROXY;
@@ -42,14 +90,19 @@ function SetProxy() {
     }
     else{}
 
-    if(Test-Path "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"){
-        (Get-Content "$env:USERPROFILE\AppData\Roaming\Docker\settings.json" -Raw) -replace '("overrideProxyHttps?"):\W?"(.*)",',('$1: ' + "$env:PROXY") | Set-Content "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"
+    $dockerSettingsPath = "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"
+    if(Test-Path $dockerSettingsPath){
+        Write-Host "Setting Docker proxy: $env:PROXY at $dockerSettingsPath"
+        (Get-Content $dockerSettingsPath -Raw) `
+            -replace '("overrideProxyHttps?"):\W?"(.*)",',('$1: "' + $env:PROXY + '",') `
+            -replace '("overrideProxyExclude?"):\W?"(.*)",',('$1: "' + $env:NO_PROXY + '",') `
+            -replace '("proxyHttpMode"):\W?"(.*)",', '$1: "manual",' | Set-Content $dockerSettingsPath
     }else{}
 }
 
 function UnsetProxy() {
-    $env:https_proxy = $null
-    $env:http_proxy = $null
+    UnsetVariable "http_proxy"
+    UnsetVariable "https_proxy"
     
     Write-Host "Clear npm proxy"
     npm config delete https-proxy
@@ -77,9 +130,13 @@ function UnsetProxy() {
     }
     else{}
 
-    if(Test-Path "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"){
-        Write-Host "Setting Docker Desktop Proxy: $env:PROXY"
-        (Get-Content "$env:USERPROFILE\AppData\Roaming\Docker\settings.json" -Raw) -replace '("overrideProxyHttps?"):\W?"(.*)",',('$1: ""') | Set-Content "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"
+    $dockerSettingsPath = "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"
+    if(Test-Path "$dockerSettingsPath"){
+        Write-Host "Clear Docker proxy"
+        (Get-Content "$dockerSettingsPath" -Raw) `
+            -replace '("overrideProxyHttps?"):\W?"(.*)",',('$1: "' + '' + '",') `
+            -replace '("overrideProxyExclude?"):\W?"(.*)",',('$1: "' + '' + '",') `
+            -replace '("proxyHttpMode"):\W?"(.*)",', '$1: "system",'| Set-Content $dockerSettingsPath
     }else{}
 }
 
@@ -92,5 +149,19 @@ function Edit-Profile() {
         Write-Host "Unable to locate VS Code on your Windows PATH."
     }
 }
+
+$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = New-Object System.Security.Principal.WindowsPrincipal($currentUser)
+$isElevated = $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
+
+Load-Vars
+
 $name = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+Write-Host ''
 Write-Host "Hello $name (from: $PSSCRIPTROOT\$($MyInvocation.Mycommand.Name))"
+Write-Host "Commands:"
+Write-Host "Enter 'SetProxy' to set proxy (requires elevated privileges)"
+Write-Host "Enter 'UnsetProxy' to unset proxy (requires elevated privileges)"
+Write-Host "Enter 'Edit-Profile' to edit your Powershell profile using VS Code"
+Write-Host "Enter 'Reload-Profile' to reload your Powershell profile (if you've made changes)"
+Write-Host ''
