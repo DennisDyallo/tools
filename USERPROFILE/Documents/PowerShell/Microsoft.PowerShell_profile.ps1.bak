@@ -41,21 +41,22 @@ function SetWslEnv($variablesArray) {
     $fullWslEnvString = ([string]::IsNullOrEmpty($wslEnv) `
             ? "SR_SETTINGS:" + $concatenatedVars `
             : $wslEnv[-1] -eq ":" `
-            ? $wslEnv + "SR_SETTINGS" + $concatenatedVars ` # If last char is ":" then don't add ":" before appending
-        : $wslEnv + ":SR_SETTINGS" + $concatenatedVars) # If last char is not ":" then add ":" before appending
+                ? $wslEnv + "SR_SETTINGS" + $concatenatedVars ` # If last char is ":" then don't add ":" before appending
+                : $wslEnv + ":SR_SETTINGS" + $concatenatedVars) # If last char is not ":" then add ":" before appending
 
     SetVariable "WSLENV" $fullWslEnvString
 }
 
+
 function SetVariable($name, $value) {
     Write-Host "Setting environment variable $name = $value"
-    #[System.Environment]::SetEnvironmentVariable($name, $value, [System.EnvironmentVariableTarget]::User)
+    [System.Environment]::SetEnvironmentVariable($name, $value, [System.EnvironmentVariableTarget]::User)
     [System.Environment]::SetEnvironmentVariable($name, $value, [System.EnvironmentVariableTarget]::Process)
 }
 
 function UnsetVariable($name) {
     Write-Host "Unsetting environment variable $name"
-    #[System.Environment]::SetEnvironmentVariable($name, $null, [System.EnvironmentVariableTarget]::User)
+    [System.Environment]::SetEnvironmentVariable($name, $null, [System.EnvironmentVariableTarget]::User)
     [System.Environment]::SetEnvironmentVariable($name, $null, [System.EnvironmentVariableTarget]::Process)
 }
 
@@ -64,42 +65,39 @@ function SetProxy() {
     SetVariable "https_proxy" $env:PROXY
     SetVariable "no_proxy" $env:NO_PROXY
 
+    Write-Host "Setting npm proxy: $env:PROXY"
     npm config set https-proxy $env:PROXY;
     npm config set proxy $env:PROXY;
 
-    if ($env:NVM_HOME -match "nvm") {
+    if($env:NVM_HOME -match "nvm"){
         Write-Host "Setting nvm proxy: $env:PROXY"
         nvm proxy $env:PROXY;
     }
-    else {}
+    else{}
     
     Write-Host "Setting git proxy: $env:PROXY"
     git config --global http.proxy $env:PROXY;
     git config --global https.proxy $env:PROXY;
 
-    if ($env:ChocolateyLastPathUpdate -match "." -and $isElevated) {
+    if($env:ChocolateyLastPathUpdate -match "." -and $isElevated){
         Write-Host "Setting choco proxy: $env:PROXY"
         choco config set --name proxy --value $env:PROXY 
     }
-    else {}
+    else{}
 
-    if ($isElevated) {
-        Write-Host "Setting winhttp proxy: $env:PROXY, bypass-list: $env:NO_PROXY"
-
+    if($isElevated){
         netsh winhttp set proxy proxy-server=$env:PROXY bypass-list=$env:NO_PROXY
     }
-    else {}
+    else{}
 
     $dockerSettingsPath = "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"
-    if (Test-Path $dockerSettingsPath) {
+    if(Test-Path $dockerSettingsPath){
         Write-Host "Setting Docker proxy: $env:PROXY at $dockerSettingsPath"
-        Write-Host "Setting Docker no_proxy: $env:NO_PROXY at $dockerSettingsPath"
         (Get-Content $dockerSettingsPath -Raw) `
-            -replace '("overrideProxyHttps?"):\W?"(.*)",', ('$1: "' + $env:PROXY + '",') `
-            -replace '("overrideProxyExclude?"):\W?"(.*)",', ('$1: "' + $env:NO_PROXY + '",') `
+            -replace '("overrideProxyHttps?"):\W?"(.*)",',('$1: "' + $env:PROXY + '",') `
+            -replace '("overrideProxyExclude?"):\W?"(.*)",',('$1: "' + $env:NO_PROXY + '",') `
             -replace '("proxyHttpMode"):\W?"(.*)",', '$1: "manual",' | Set-Content $dockerSettingsPath
-    }
-    else {}
+    }else{}
 }
 
 function UnsetProxy() {
@@ -110,114 +108,46 @@ function UnsetProxy() {
     npm config delete https-proxy
     npm config delete proxy
 
-    if ($env:NVM_HOME -match "nvm") {
+    if($env:NVM_HOME -match "nvm"){
         Write-Host "Clear nvm proxy"
         nvm proxy none
     }
-    else {}
+    else{}
 
     Write-Host "Clear git proxy"
     git config --unset --global https.proxy
     git config --unset --global http.proxy 
 
-    if ($env:ChocolateyLastPathUpdate -match "." -and $isElevated) {
+    if($env:ChocolateyLastPathUpdate -match "." -and $isElevated){
         Write-Host "Clear choco proxy"
         choco config unset proxy
     }
-    else {}
+    else{}
 
-    if ($isElevated) {
+    if($isElevated){
         Write-Host "Clear winhttp proxy"
         netsh winhttp reset proxy
     }
-    else {}
+    else{}
 
     $dockerSettingsPath = "$env:USERPROFILE\AppData\Roaming\Docker\settings.json"
-    if (Test-Path "$dockerSettingsPath") {
+    if(Test-Path "$dockerSettingsPath"){
         Write-Host "Clear Docker proxy"
         (Get-Content "$dockerSettingsPath" -Raw) `
-            -replace '("overrideProxyHttps?"):\W?"(.*)",', ('$1: "' + '' + '",') `
-            -replace '("overrideProxyExclude?"):\W?"(.*)",', ('$1: "' + '' + '",') `
-            -replace '("proxyHttpMode"):\W?"(.*)",', '$1: "system",' | Set-Content $dockerSettingsPath
-    }
-    else {}
+            -replace '("overrideProxyHttps?"):\W?"(.*)",',('$1: "' + '' + '",') `
+            -replace '("overrideProxyExclude?"):\W?"(.*)",',('$1: "' + '' + '",') `
+            -replace '("proxyHttpMode"):\W?"(.*)",', '$1: "system",'| Set-Content $dockerSettingsPath
+    }else{}
 }
 
 function Edit-Profile() {
-    Write-Host "Trying to open your Powershell profile in VS Code.."
-    if ($env:PATH -match "code") {
+    if($env:PATH -match "code"){
+        Write-Host "Opening your Powershell user profile using VS Code...."
         code $PROFILE
     }
-    else {
+    else{
         Write-Host "Unable to locate VS Code on your Windows PATH."
     }
-}
-
-function Reload-Profile () {
-    . $profile
-}
-
-function Edit-Npm() {
-    code "C:\Users\Zouz\.npmrc"
-}
-
-function Edit-Bash() {
-    code "C:\Users\Zouz\.bashrc"
-}
-
-function Goto-Dev() {
-    $env:dev = "$env:USERPROFILE\Documents\GitHub"
-    Set-Location $env:dev
-}
-
-function Add-DefenderExclusions() {
-    if ($isElevated) {
-        & $env:USERPROFILE\Documents\PowerShell\defender-exclusions.ps1
-    }
-    else {
-        Write-Host "This command requires elevated privileges."
-    }
-}
-
-function gs{git status}
-function ga{git add .}
-function gfa{git fetch --all}
-
-function grman{git rebase -i main}
-function grmas{git rebase -i master}
-function grdev{git rebase -i develop}
-
-function gitc{ git commit -m @args }
-function gac{git add .;git commit -m @args}
-function pushmas{git push origin master}
-function pushman{git push origin main}
-function pushdev{git push origin develop}
-
-function pullman{git pull origin main}
-function pullmas{git pull origin main}
-function pulldev{git pull origin develop}
-
-function gpu{git pull}
-function gpr{git pull --rebase}
-function gl{git log}
-function glo{git log --oneline}
-function gch{git checkout @args}
-function gcn{git checkout -b @args}
-
-function gman{git checkout main}
-function gmas{git checkout master}
-function gdev{git checkout develop}
-
-function gb{git branch @args}
-function gs{git status}
-function gd{git diff}
-
-# Import the Chocolatey Profile that contains the necessary code to enable
-# tab-completions to function for `choco`.
-# See https://ch0.co/tab-completion for details.
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-    Import-Module "$ChocolateyProfile"
 }
 
 $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -225,15 +155,13 @@ $principal = New-Object System.Security.Principal.WindowsPrincipal($currentUser)
 $isElevated = $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
 
 Load-Vars
-Add-DefenderExclusions
 
+$name = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 Write-Host ''
-Write-Host "Hello Dennis (from: $PSSCRIPTROOT\$($MyInvocation.Mycommand.Name))"
+Write-Host "Hello $name (from: $PSSCRIPTROOT\$($MyInvocation.Mycommand.Name))"
 Write-Host "Commands:"
-Write-Host "Enter 'SetProxy' to set proxy (requires elevated privileges to set all proxies)"
-Write-Host "Enter 'UnsetProxy' to unset proxy (requires elevated privileges to unset all proxies)"
+Write-Host "Enter 'SetProxy' to set proxy (requires elevated privileges)"
+Write-Host "Enter 'UnsetProxy' to unset proxy (requires elevated privileges)"
 Write-Host "Enter 'Edit-Profile' to edit your Powershell profile using VS Code"
-Write-Host "Enter 'Reload-Profile' to reload your Powershell profile"
-Write-Host "Enter 'Add-DefenderExclusions' to reload your Powershell profile (requires elevated privileges)"
-Write-Host ''
+Write-Host "Enter 'Reload-Profile' to reload your Powershell profile (if you've made changes)"
 Write-Host ''
