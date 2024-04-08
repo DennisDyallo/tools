@@ -179,6 +179,21 @@ function Add-DefenderExclusions() {
     }
 }
 
+function Verify-FileHash {
+    param(
+        [string]$fileName,
+        [string]$expectedHash
+    )
+
+    $computedHash = (Get-FileHash -Path $fileName -Algorithm SHA256).Hash.ToLower()
+
+    if ($computedHash -eq $expectedHash.ToLower()) {
+        Write-Host "The file's hash matches the expected hash. Verification successful."
+    } else {
+        Write-Host "The file's hash does not match the expected hash. Verification failed."
+    }
+}
+
 function gs{git status}
 function ga{git add .}
 function gfa{git fetch --all}
