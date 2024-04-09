@@ -23,6 +23,7 @@ function Install-OhMyPosh() {
 
         Write-Host "Installing fonts"
         oh-my-posh font install
+        # You may need to set this font in your settings.json for Powershell (to be scripted in the future)
         
         Write-Host "Installing config"
         Create-OhMyPosh-Config $powershellConfigPath
