@@ -36,7 +36,6 @@ function Create-OhMyPosh-Config($powershellConfigPath) {
     Get-OhMyPosh-Json | Out-File -FilePath $powershellConfigPath
 }
 
-
 function Get-OhMyPosh-Json() {
     '{
         "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
@@ -181,8 +180,8 @@ function Install-WslInterop() {
     }
 
     #Create a hashtable
-    SetVariable WslDefaultParameterValues @{
-        ls = "-AFh --group-directories-first"
+    Set-Variable WslDefaultParameterValues @{
+        ls = "-AFh --group-directories-first --color=auto"
     } -Scope Global
 
     Import-WslCommand "apt", "awk", "emacs", "find", "grep", "head", "less", "ls", "man", "sed", "seq", "ssh", "sudo", "tail", "touch", "vim", "cat" 
