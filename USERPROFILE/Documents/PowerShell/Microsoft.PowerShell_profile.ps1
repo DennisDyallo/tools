@@ -6,7 +6,22 @@
 # With cmd: 
 # > mklink %USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1 C:\Users\YourName\Documents\tools\USERPROFILE\PowerShell\Microsoft.PowerShell_profile.ps1
 
+function Install-WslInterop() {
+    if (!(Get-Module -ListAvailable -Name WslInterop)) {
+        Write-Host "Installing module WslInterop"
+        Install-Module WslInterop
+    } else {
+        # Write-Host "Module WslInterop already installed"
+    }
 
+    #Create a hashtable
+    Set-Variable WslDefaultParameterValues @{
+        ls = "-AFh --group-directories-first"
+    } -Scope Global
+
+    Import-WslCommand "apt", "awk", "emacs", "find", "grep", "head", "less", "ls", "man", "sed", "seq", "ssh", "sudo", "tail", "touch", "vim", "cat" 
+    Write-Host "Linux commands imported"
+}
 
 function Load-Vars() {
     Write-Host "Loading environment variables from $env:USERPROFILE\.env"
@@ -240,6 +255,8 @@ $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
     Import-Module "$ChocolateyProfile"
 }
+
+Install-WslInterop
 
 $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = New-Object System.Security.Principal.WindowsPrincipal($currentUser)
