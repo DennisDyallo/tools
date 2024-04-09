@@ -4,7 +4,7 @@
 # variables in the format: VARIABLE_NAME=VARIABLE_VALUE
 # If checked out, add a sym link from the repo to the user's PowerShell User Profile directory (e.g. C:\Users\YourName\Documents\PowerShell)
 # With cmd: 
-# > mklink %USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1 C:\Users\YourName\Documents\PowerShell\Microsoft.PowerShell_profile.ps1
+# > mklink %USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1 C:\Users\YourName\Documents\tools\USERPROFILE\PowerShell\Microsoft.PowerShell_profile.ps1
 
 
 
