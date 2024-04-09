@@ -6,6 +6,172 @@
 # With cmd: 
 # > mklink %USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1 C:\Users\YourName\Documents\tools\USERPROFILE\PowerShell\Microsoft.PowerShell_profile.ps1
 
+
+function Install-OhMyPosh() {
+    $powershellConfigPath = "$env:USERPROFILE\Documents\PowerShell\powershell.json"
+    try {
+        oh-my-posh --version *>$null
+    } catch {
+        if (-not $isElevated){
+            Write-Host "Installing Oh My Posh requires elevated privileges"
+            return
+        }
+
+        Write-Output "Installing Oh My Posh..."
+        winget install JanDeDobbeleer.OhMyPosh -s winget
+        Reload-Path
+
+        Write-Host "Installing fonts"
+        oh-my-posh font install
+        
+        Write-Host "Installing config"
+        Create-OhMyPosh-Config $powershellConfigPath
+
+    } finally {
+        oh-my-posh init pwsh --config $powershellConfigPath | Invoke-Expression *>$null
+    }
+}
+
+function Create-OhMyPosh-Config($powershellConfigPath) {
+    Get-OhMyPosh-Json | Out-File -FilePath $powershellConfigPath
+}
+
+
+function Get-OhMyPosh-Json() {
+    '{
+        "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+        "blocks": [
+          {
+            "alignment": "left",
+            "newline": true,
+            "segments": [
+              {
+                "background": "#d75f00",
+                "foreground": "#f2f3f8",
+                "properties": {
+                  "alpine": "\uf300",
+                  "arch": "\uf303",
+                  "centos": "\uf304",
+                  "debian": "\uf306",
+                  "elementary": "\uf309",
+                  "fedora": "\uf30a",
+                  "gentoo": "\uf30d",
+                  "linux": "\ue712",
+                  "macos": "\ue711",
+                  "manjaro": "\uf312",
+                  "mint": "\uf30f",
+                  "opensuse": "\uf314",
+                  "raspbian": "\uf315",
+                  "ubuntu": "\uf31c",
+                  "windows": "\ue70f"
+                },
+                "style": "diamond",
+                "leading_diamond": "\u256d\u2500\ue0b2",
+                "template": " {{ .Icon }} ",
+                "type": "os"
+              },
+              {
+                "background": "#e4e4e4",
+                "foreground": "#4e4e4e",
+                "style": "powerline",
+                "powerline_symbol": "\ue0b0",
+                "template": " {{ .UserName }} ",
+                "type": "session"
+              },
+              {
+                "background": "#0087af",
+                "foreground": "#f2f3f8",
+                "properties": {
+                  "style": "agnoster_short",
+                  "max_depth": 3,
+                  "folder_icon": "\u2026",
+                  "folder_separator_icon": " <transparent>\ue0b1</> "
+                },
+                "style": "powerline",
+                "powerline_symbol": "\ue0b0",
+                "template": " {{ .Path }} ",
+                "type": "path"
+              },
+              {
+                "background": "#378504",
+                "foreground": "#f2f3f8",
+                "background_templates": [
+                  "{{ if or (.Working.Changed) (.Staging.Changed) }}#a97400{{ end }}",
+                  "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#54433a{{ end }}",
+                  "{{ if gt .Ahead 0 }}#744d89{{ end }}",
+                  "{{ if gt .Behind 0 }}#744d89{{ end }}"
+                ],
+                "properties": {
+                  "branch_max_length": 25,
+                  "fetch_stash_count": true,
+                  "fetch_status": true,
+                  "branch_icon": "\uf418 ",
+                  "branch_identical_icon": "\uf444",
+                  "branch_gone_icon": "\ueab8"
+                },
+                "style": "diamond",
+                "leading_diamond": "<transparent,background>\ue0b0</>",
+                "template": " {{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} <transparent>\ue0b1</> <#121318>\uf044 {{ .Working.String }}</>{{ end }}{{ if .Staging.Changed }} <transparent>\ue0b1</> <#121318>\uf046 {{ .Staging.String }}</>{{ end }}{{ if gt .StashCount 0 }} <transparent>\ue0b1</> <#121318>\ueb4b {{ .StashCount }}</>{{ end }} ",
+                "trailing_diamond": "\ue0b0",
+                "type": "git"
+              }
+            ],
+            "type": "prompt"
+          },
+          {
+            "alignment": "right",
+            "segments": [
+              {
+                "background": "#e4e4e4",
+                "foreground": "#585858",
+                "properties": {
+                  "style": "austin",
+                  "always_enabled": true
+                },
+                "invert_powerline": true,
+                "style": "powerline",
+                "powerline_symbol": "\ue0b2",
+                "template": " \ueba2 {{ .FormattedMs }} ",
+                "type": "executiontime"
+              },
+              {
+                "background": "#d75f00",
+                "foreground": "#f2f3f8",
+                "properties": {
+                  "time_format": "15:04:05"
+                },
+                "invert_powerline": true,
+                "style": "diamond",
+                "template": " \uf073 {{ .CurrentDate | date .Format }} ",
+                "trailing_diamond": "\ue0b0",
+                "type": "time"
+              }
+            ],
+            "type": "prompt"
+          },
+          {
+            "alignment": "left",
+            "newline": true,
+            "segments": [
+              {
+                "foreground": "#d75f00",
+                "style": "plain",
+                "template": "\u2570\u2500 {{ if .Root }}#{{else}}${{end}}",
+                "type": "text"
+              }
+            ],
+            "type": "prompt"
+          }
+        ],
+        "final_space": true,
+        "version": 2
+      }'
+}
+
+function Reload-Path() {
+    $Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")  
+}
+
 function Install-WslInterop() {
     if (!(Get-Module -ListAvailable -Name WslInterop)) {
         Write-Host "Installing module WslInterop"
@@ -15,12 +181,11 @@ function Install-WslInterop() {
     }
 
     #Create a hashtable
-    Set-Variable WslDefaultParameterValues @{
+    SetVariable WslDefaultParameterValues @{
         ls = "-AFh --group-directories-first"
     } -Scope Global
 
     Import-WslCommand "apt", "awk", "emacs", "find", "grep", "head", "less", "ls", "man", "sed", "seq", "ssh", "sudo", "tail", "touch", "vim", "cat" 
-    Write-Host "Linux commands imported"
 }
 
 function Load-Vars() {
@@ -69,13 +234,13 @@ function SetWslEnv($variablesArray) {
 }
 
 function SetVariable($name, $value) {
-    Write-Host "Setting environment variable $name = $value"
+    # Write-Host "Setting environment variable $name = $value"
     #[System.Environment]::SetEnvironmentVariable($name, $value, [System.EnvironmentVariableTarget]::User)
     [System.Environment]::SetEnvironmentVariable($name, $value, [System.EnvironmentVariableTarget]::Process)
 }
 
 function UnsetVariable($name) {
-    Write-Host "Unsetting environment variable $name"
+    # Write-Host "Unsetting environment variable $name"
     #[System.Environment]::SetEnvironmentVariable($name, $null, [System.EnvironmentVariableTarget]::User)
     [System.Environment]::SetEnvironmentVariable($name, $null, [System.EnvironmentVariableTarget]::Process)
 }
@@ -196,7 +361,7 @@ function Add-DefenderExclusions() {
         & $env:USERPROFILE\Documents\PowerShell\defender-exclusions.ps1
     }
     else {
-        Write-Host "This command requires elevated privileges."
+        Write-Host "(Add-DefenderExclusions) This command requires elevated privileges."
     }
 }
 
@@ -256,14 +421,17 @@ if (Test-Path($ChocolateyProfile)) {
     Import-Module "$ChocolateyProfile"
 }
 
-Install-WslInterop
+
 
 $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = New-Object System.Security.Principal.WindowsPrincipal($currentUser)
 $isElevated = $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
 
 Load-Vars
+$work="$env:USERPROFILE\Documents\Work"
 Add-DefenderExclusions
+Install-WslInterop
+Install-OhMyPosh
 
 Write-Host ''
 Write-Host "Hello Dennis (from: $PSSCRIPTROOT\$($MyInvocation.Mycommand.Name))"
@@ -272,6 +440,6 @@ Write-Host "Enter 'SetProxy' to set proxy (requires elevated privileges to set a
 Write-Host "Enter 'UnsetProxy' to unset proxy (requires elevated privileges to unset all proxies)"
 Write-Host "Enter 'Edit-Profile' to edit your Powershell profile using VS Code"
 Write-Host "Enter 'Reload-Profile' to reload your Powershell profile"
-Write-Host "Enter 'Add-DefenderExclusions' to reload your Powershell profile (requires elevated privileges)"
+Write-Host "Enter 'Add-DefenderExclusions' to exclude Windows Defender from certain path (requires elevated privileges)"
 Write-Host ''
 Write-Host ''
