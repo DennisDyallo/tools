@@ -1,15 +1,15 @@
-name: Question
-description: File a bug report.
-title: "[Bug]: "
-labels: ["bug", "triage"]
-projects: ["octo-org/1", "octo-org/44"]
+name: Feature Request
+description: Suggest an idea for this project.
+title: "[Feature]: "
+labels: ["feature"]
+projects: []
 assignees:
   - octocat
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        Thanks for taking the time to suggest a feature!
   - type: input
     id: contact
     attributes:
@@ -19,46 +19,30 @@ body:
     validations:
       required: false
   - type: textarea
-    id: what-happened
+    id: feature-description
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
+      label: Feature Description
+      description: Describe the feature you would like to see.
+      placeholder: Describe your feature here.
     validations:
       required: true
-  - type: dropdown
-    id: version
-    attributes:
-      label: Version
-      description: What version of our software are you running?
-      options:
-        - 1.0.2 (Default)
-        - 1.0.3 (Edge)
-      default: 0
-    validations:
-      required: true
-  - type: dropdown
-    id: browsers
-    attributes:
-      label: What browsers are you seeing the problem on?
-      multiple: true
-      options:
-        - Firefox
-        - Chrome
-        - Safari
-        - Microsoft Edge
   - type: textarea
-    id: logs
+    id: motivation
     attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-      render: shell
+      label: Motivation
+      description: What is the motivation or use case for this feature?
+      placeholder: Tell us why the feature is important.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Possible Alternatives
+      description: Are there any alternatives to your feature request, and have they been considered?
+      placeholder: Describe any alternative solutions or features you have considered.
   - type: checkboxes
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com). 
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com).
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true
