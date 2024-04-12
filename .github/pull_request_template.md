@@ -1,23 +1,34 @@
----
-name: Pull Request
-about: Describe this pull request's purpose here.
-title: ''
-labels: ''
-assignees: ''
+# Description
 
----
+Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
 
-**Related Issue(s)**
-Please link the issue(s) this pull request addresses.
+Fixes # <link to issue(s)>
 
-**Include tests for your changes?**
-- [ ] Yes
-- [ ] No
+## Type of change
 
-**If applicable, did you update the documentation?**
+Please delete options that are not relevant.
 
-**Summary**
-A brief summary of the changes your pull request makes.
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] This change requires a documentation update
 
-**Other information**
-Provide any other relevant information here.
+# How Has This Been Tested?
+
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+
+**Test Configuration**:
+* Firmware version:
+* Hardware:
+* SDK:
+
+# Checklist:
+
+- [ ] My code follows the [style guidelines](https://raw.githubusercontent.com/Yubico/Yubico.NET.SDK/043119ad1d19e0e6e66556c970a81d0c1aba36c8/CONTRIBUTING.md) of this project 
+- [ ] I have performed a self-review of my own code
+- [ ] I have run `dotnet format`
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
