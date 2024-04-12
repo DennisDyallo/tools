@@ -1,6 +1,6 @@
 name: ❔Question
 description: Ask a question or seek clarification about the project.
-title: "[Question]: "
+title: "[Question]: <title>"
 labels: ["question"]
 assignees: []
 body:
