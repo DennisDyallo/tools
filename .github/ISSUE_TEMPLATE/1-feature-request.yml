@@ -1,23 +1,13 @@
 name: Feature Request
 description: Suggest an idea for this project.
 title: "[Feature]: "
-labels: ["feature"]
+labels: ["enhancement"]
 projects: []
-assignees:
-  - octocat
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to suggest a feature!
-  - type: input
-    id: contact
-    attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
-    validations:
-      required: false
   - type: textarea
     id: feature-description
     attributes:
@@ -32,12 +22,6 @@ body:
       label: Motivation
       description: What is the motivation or use case for this feature?
       placeholder: Tell us why the feature is important.
-  - type: textarea
-    id: alternatives
-    attributes:
-      label: Possible Alternatives
-      description: Are there any alternatives to your feature request, and have they been considered?
-      placeholder: Describe any alternative solutions or features you have considered.
   - type: checkboxes
     id: terms
     attributes:
