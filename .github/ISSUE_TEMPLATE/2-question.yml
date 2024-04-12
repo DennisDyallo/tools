@@ -1,0 +1,41 @@
+name: Question
+description: Ask a question or seek clarification about the project.
+title: "[Question]: "
+labels: ["question"]
+assignees:
+  - octocat
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to ask a question! We strive to respond as quickly as possible.
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more information?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: question
+    attributes:
+      label: What is your question?
+      description: Please be as detailed as possible.
+      placeholder: What do you want to know?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any additional context around the question.
+      placeholder: Provide more background information here.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this question, you agree to follow our [Code of Conduct](https://example.com).
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
