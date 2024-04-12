@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: GitHub Community Support
-    url: https://github.com/orgs/community/discussions
-    about: Please ask and answer questions here.
-  - name: GitHub Security Bug Bounty
-    url: https://bounty.github.com/
-    about: Please report security vulnerabilities here.
+  - name: Official SDK Documentation
+    url: https://docs.yubico.com/yesdk/
+    about: Find your answer in the documentation.
+  - name: The Yubico blog
+    url: https://www.yubico.com/blog/
+    about: Stay up to date on company and partner news, product tips, and industry trends.
