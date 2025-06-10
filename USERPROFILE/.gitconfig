@@ -27,3 +27,30 @@ default = upstream
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+
+[user]
+	signingKey = AAF18624394B3F1D
+	name = Dennis Dyallo
+	email = dennis.dyall@yubico.com
+[commit]
+	gpgsign = true
+[core]
+	pager = cat
+[oh-my-zsh]
+	git-commit-alias = 95ef2516697aa764d1d4bb93ad3490584cc118ec
+[alias]
+	conventional-commit = "!f() { local type=\"$1\"; shift; local scope=\"\"; local attention=\"\"; local message=\"\"; while [ $# -ne 0 ]; do case $1 in -s|--scope) scope=\"$2\"; shift 2;; -a|--attention) attention=\"!\"; shift 1;; *) message=\"${message} $1\"; shift 1;; esac; done; git commit -m \"${type}${scope:+(${scope})}${attention}:${message}\"; }; f"
+	build = !git conventional-commit build
+	chore = !git conventional-commit chore
+	ci = !git conventional-commit ci
+	docs = !git conventional-commit docs
+	feat = !git conventional-commit feat
+	fix = !git conventional-commit fix
+	perf = !git conventional-commit perf
+	refactor = !git conventional-commit refactor
+	rev = !git conventional-commit revert
+	style = !git conventional-commit style
+	test = !git conventional-commit test
+	wip = !git conventional-commit wip
+	clean-builds = !find . -type d \\( -name \"bin\" -o -name \"obj\" \\) -delete
+	clean-all = !find . -type d \\( -name \"bin\" -o -name \"obj\" \\) -delete && find ./docs/yubikey-api ./docs/core-api -name \"Yubico*.yml\" -type f -delete
