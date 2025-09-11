@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Simple setup script - just installs dependencies and creates directories
-# You write the actual test files yourself
+# Focus on testing logic, not system interactions
 
 echo "Setting up testing environment for safe-arch-upgrade.sh"
 
@@ -19,35 +19,34 @@ fi
 
 # Create basic directory structure
 mkdir -p tests/fixtures
-mkdir -p tests/helpers
 
-# Create a simple helper file
-cat > tests/helpers/test_helper.bash << 'EOF'
-# Test helper functions
+# Create a simple helper file (no mocking complexity)
+cat > tests/test_helper.bash << 'EOF'
+# Simple test helpers - no mocking needed
 
-setup_test_env() {
-    export TEST_DIR="$(mktemp -d)"
-    export LOGFILE="$TEST_DIR/test.log"
-    export PATH="$TEST_DIR/mocks:$PATH"
-    mkdir -p "$TEST_DIR/mocks"
+# Load the script functions for testing (without executing main)
+load_script_functions() {
+    # Extract functions from main script, skip main execution
+    source <(grep -E '^[a-zA-Z_][a-zA-Z0-9_]*\(\)|^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*\(\)' ../safe-arch-upgrade.sh | head -n -1)
 }
 
-teardown_test_env() {
-    [[ -n "$TEST_DIR" ]] && rm -rf "$TEST_DIR"
+# Test specific math operations
+test_space_conversion() {
+    local kb="$1"
+    echo "$kb" | awk '{printf "%.1f", $1/1024/1024}'
 }
 
-# Create a mock command
-mock_command() {
-    local cmd="$1"
-    local exit_code="${2:-0}"
-    local output="$3"
+# Test threshold logic without external dependencies
+test_space_threshold() {
+    local gb_int="$1"
     
-    cat > "$TEST_DIR/mocks/$cmd" << MOCKEOF
-#!/bin/bash
-echo "$output"
-exit $exit_code
-MOCKEOF
-    chmod +x "$TEST_DIR/mocks/$cmd"
+    if [[ $gb_int -lt 5 ]]; then
+        echo "critical"
+    elif [[ $gb_int -lt 10 ]]; then
+        echo "warning"
+    else
+        echo "ok"
+    fi
 }
 EOF
 
@@ -62,9 +61,8 @@ chmod +x run_tests.sh
 echo
 echo "✅ Setup complete!"
 echo
-echo "Now create your test files manually:"
-echo "  tests/test_argument_parsing.bats"
-echo "  tests/test_space_management.bats"
-echo "  tests/test_integration.bats"
+echo "Create simple test files that focus on logic:"
+echo "  tests/test_math.bats           # Test calculations"
+echo "  tests/test_logic.bats          # Test decision logic"  
+echo "  tests/test_interface.bats      # Test command line"
 echo
-echo "Example test structure provided below."
