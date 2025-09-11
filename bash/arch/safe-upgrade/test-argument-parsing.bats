@@ -26,16 +26,18 @@ load 'test_helper'
 }
 
 @test "script checks for root user" {
-    # Create a version that mocks EUID for testing
-    script_content=$(cat ./safe-upgrade.sh)
+    # Create a version that simulates running as root
+    temp_script=$(mktemp)
     
-    # Replace EUID check with our test value
-    echo "$script_content" | sed 's/\$EUID/0/' | bash -s -- --help
+    # Copy script but change EUID check to simulate root (EUID=0)
+    sed 's/\$EUID -eq 0/0 -eq 0/' ./safe-upgrade.sh > "$temp_script"
     
-    # Should complain about running as root
-    run bash -c 'EUID=0; bash ./safe-upgrade.sh --help'
-    [[ "$output" =~ "Don't run this script as root" ]] || 
-    [[ "$status" -eq 1 ]]
+    # Should complain about running as root and exit with status 1
+    run bash "$temp_script" --help
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Don't run this script as root" ]]
+    
+    rm "$temp_script"
 }
 
 # Test argument parsing logic in isolation (if we extract the function)

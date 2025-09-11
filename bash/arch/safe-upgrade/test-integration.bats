@@ -27,7 +27,7 @@
     temp_script=$(mktemp)
     
     # Copy script but change EUID check to simulate root
-    sed 's/\[[ ] *$EUID -eq 0/[[ 0 -eq 0/' ./safe-upgrade.sh > "$temp_script"
+    sed 's/\$EUID -eq 0/0 -eq 0/' ./safe-upgrade.sh > "$temp_script"
     
     run bash "$temp_script" --help
     [ "$status" -eq 1 ]
