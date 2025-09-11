@@ -1,0 +1,185 @@
+name: Safe Arch Upgrade Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: 
+      - 'bash/arch/safe-upgrade/**'
+  pull_request:
+    branches: [ main ]
+    paths: 
+      - 'bash/arch/safe-upgrade/**'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Bats Tests
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Install Bats testing framework
+      run: |
+        # Install Bats and related testing tools
+        sudo apt-get update
+        sudo apt-get install -y bats
+        
+        # Verify Bats installation
+        bats --version
+        
+    - name: Install test dependencies
+      run: |
+        # Install basic tools that the script might check for
+        sudo apt-get install -y \
+          gawk \
+          coreutils \
+          findutils \
+          grep \
+          sed
+          
+    - name: Set up test environment
+      run: |
+        # Make test files executable
+        chmod +x bash/arch/safe-upgrade/run_tests.sh
+        chmod +x bash/arch/safe-upgrade/safe-upgrade.sh
+        
+        # Create any necessary directories for testing
+        mkdir -p bash/arch/safe-upgrade/test-artifacts
+        
+    - name: Run comprehensive test suite
+      working-directory: bash/arch/safe-upgrade
+      run: |
+        echo "=== Running Safe Arch Upgrade Test Suite ==="
+        echo ""
+        echo "Test environment:"
+        echo "- OS: $(lsb_release -d | cut -f2)"
+        echo "- Bats version: $(bats --version)"
+        echo "- Working directory: $(pwd)"
+        echo ""
+        
+        # Run the full test suite
+        ./run_tests.sh
+        
+    - name: Generate test report
+      if: always()  # Run even if tests fail
+      working-directory: bash/arch/safe-upgrade
+      run: |
+        echo "=== Test Summary ==="
+        echo ""
+        
+        # Count test files and estimate coverage
+        TOTAL_BATS_FILES=$(ls -1 *.bats | wc -l)
+        echo "Test files: $TOTAL_BATS_FILES"
+        
+        # List all test files for verification
+        echo ""
+        echo "Test files found:"
+        ls -1 *.bats | sed 's/^/  - /'
+        
+        echo ""
+        echo "Script being tested: safe-upgrade.sh"
+        echo "Script size: $(wc -l < safe-upgrade.sh) lines"
+        
+        # Check script functions for coverage analysis
+        echo ""
+        echo "Functions detected in script:"
+        grep -E '^[a-zA-Z_][a-zA-Z0-9_]*\(\)' safe-upgrade.sh | sed 's/^/  - /'
+        
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          bash/arch/safe-upgrade/*.bats
+          bash/arch/safe-upgrade/test_helper.bash
+          bash/arch/safe-upgrade/run_tests.sh
+          bash/arch/safe-upgrade/test-artifacts/
+        retention-days: 7
+        
+    - name: Check for test failures
+      if: failure()
+      run: |
+        echo "❌ Tests failed! Check the test output above for details."
+        echo ""
+        echo "Common issues:"
+        echo "- Script functionality doesn't match test expectations"
+        echo "- Missing dependencies in CI environment"
+        echo "- Test logic needs adjustment for CI environment"
+        echo ""
+        echo "To debug locally, run: ./bash/arch/safe-upgrade/run_tests.sh"
+        exit 1
+        
+  validate-script:
+    runs-on: ubuntu-latest
+    name: Validate Script Quality
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install shellcheck
+      run: sudo apt-get update && sudo apt-get install -y shellcheck
+      
+    - name: Run shellcheck on main script
+      working-directory: bash/arch/safe-upgrade
+      run: |
+        echo "=== Running ShellCheck Analysis ==="
+        shellcheck -x safe-upgrade.sh || echo "ShellCheck found issues (non-blocking for now)"
+        
+    - name: Check script syntax
+      working-directory: bash/arch/safe-upgrade
+      run: |
+        echo "=== Checking Bash Syntax ==="
+        bash -n safe-upgrade.sh
+        echo "✅ Script syntax is valid"
+        
+    - name: Verify script is executable
+      working-directory: bash/arch/safe-upgrade
+      run: |
+        echo "=== Checking Script Permissions ==="
+        if [ -x safe-upgrade.sh ]; then
+          echo "✅ Script is executable"
+        else
+          echo "❌ Script is not executable"
+          exit 1
+        fi
+        
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Analysis
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check for sensitive patterns
+      working-directory: bash/arch/safe-upgrade
+      run: |
+        echo "=== Security Pattern Analysis ==="
+        
+        # Check for potentially dangerous patterns
+        if grep -n "rm -rf" safe-upgrade.sh; then
+          echo "⚠️  Found potentially dangerous 'rm -rf' commands"
+        fi
+        
+        if grep -n "sudo.*rm" safe-upgrade.sh; then
+          echo "⚠️  Found sudo rm commands - verify they are safe"
+        fi
+        
+        # Check for hardcoded credentials (should be none)
+        if grep -iE "(password|token|key|secret).*=" safe-upgrade.sh; then
+          echo "❌ Potential hardcoded credentials found"
+          exit 1
+        else
+          echo "✅ No hardcoded credentials detected"
+        fi
+        
+        # Check for proper privilege escalation
+        if grep -q "sudo" safe-upgrade.sh; then
+          echo "✅ Script uses sudo for privilege escalation"
+        fi
+        
+        echo "✅ Basic security checks passed"
