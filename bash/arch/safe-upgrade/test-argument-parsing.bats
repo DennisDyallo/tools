@@ -5,7 +5,7 @@ load 'test_helper'
 
 # Test the script's command line interface directly
 @test "script shows help with --help" {
-    run bash ../safe-arch-upgrade.sh --help
+    run bash ./safe-upgrade.sh --help
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Usage:" ]]
     [[ "$output" =~ "--rollback" ]]
@@ -13,27 +13,27 @@ load 'test_helper'
 }
 
 @test "script rejects invalid arguments" {
-    run bash ../safe-arch-upgrade.sh --invalid-option
+    run bash ./safe-upgrade.sh --invalid-option
     [ "$status" -eq 1 ]
     [[ "$output" =~ "Unknown option" ]]
 }
 
 @test "script accepts valid arguments" {
     # These should not error (though they may exit early for other reasons)
-    run bash ../safe-arch-upgrade.sh --list
+    run bash ./safe-upgrade.sh --list
     # Don't check exit code since it might fail due to missing timeshift
     [[ "$output" =~ "Available snapshots" ]] || [[ "$output" =~ "No snapshot system" ]]
 }
 
 @test "script checks for root user" {
     # Create a version that mocks EUID for testing
-    script_content=$(cat ../safe-arch-upgrade.sh)
+    script_content=$(cat ./safe-upgrade.sh)
     
     # Replace EUID check with our test value
     echo "$script_content" | sed 's/\$EUID/0/' | bash -s -- --help
     
     # Should complain about running as root
-    run bash -c 'EUID=0; bash ../safe-arch-upgrade.sh --help'
+    run bash -c 'EUID=0; bash ./safe-upgrade.sh --help'
     [[ "$output" =~ "Don't run this script as root" ]] || 
     [[ "$status" -eq 1 ]]
 }

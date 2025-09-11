@@ -3,7 +3,7 @@
 # Simple setup script - just installs dependencies and creates directories
 # Focus on testing logic, not system interactions
 
-echo "Setting up testing environment for safe-arch-upgrade.sh"
+echo "Setting up testing environment for safe-upgrade.sh"
 
 # Install Bats if not present
 if ! command -v bats &> /dev/null; then
@@ -27,7 +27,7 @@ cat > tests/test_helper.bash << 'EOF'
 # Load the script functions for testing (without executing main)
 load_script_functions() {
     # Extract functions from main script, skip main execution
-    source <(grep -E '^[a-zA-Z_][a-zA-Z0-9_]*\(\)|^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*\(\)' ../safe-arch-upgrade.sh | head -n -1)
+    source <(grep -E '^[a-zA-Z_][a-zA-Z0-9_]*\(\)|^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*\(\)' ./safe-upgrade.sh | head -n -1)
 }
 
 # Test specific math operations
