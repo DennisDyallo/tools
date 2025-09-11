@@ -3,7 +3,7 @@
 # Load the script functions for testing (without executing main)
 load_script_functions() {
     # Extract functions from main script, skip main execution
-    source <(grep -E '^[a-zA-Z_][a-zA-Z0-9_]*\(\)|^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*\(\)' ./safe-upgrade.sh | head -n -1)
+    source <(grep -E '^[a-zA-Z_][a-zA-Z0-9_]*\(\)|^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*\(\)' safe-upgrade.sh | head -n -1)
 }
 
 # Test specific math operations

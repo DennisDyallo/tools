@@ -5,7 +5,7 @@ load 'test_helper'
 
 # Test the script's command line interface directly
 @test "script shows help with --help" {
-    run bash ./safe-upgrade.sh --help
+    run bash safe-upgrade.sh --help
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Usage:" ]]
     [[ "$output" =~ "--rollback" ]]
@@ -13,14 +13,14 @@ load 'test_helper'
 }
 
 @test "script rejects invalid arguments" {
-    run bash ./safe-upgrade.sh --invalid-option
+    run bash safe-upgrade.sh --invalid-option
     [ "$status" -eq 1 ]
     [[ "$output" =~ "Unknown option" ]]
 }
 
 @test "script accepts valid arguments" {
     # These should not error (though they may exit early for other reasons)
-    run bash ./safe-upgrade.sh --list
+    run bash safe-upgrade.sh --list
     # Don't check exit code since it might fail due to missing timeshift
     [[ "$output" =~ "Available snapshots" ]] || [[ "$output" =~ "No snapshot system" ]]
 }
@@ -30,7 +30,7 @@ load 'test_helper'
     temp_script=$(mktemp)
     
     # Copy script but change EUID check to simulate root (EUID=0)
-    sed 's/\$EUID -eq 0/0 -eq 0/' ./safe-upgrade.sh > "$temp_script"
+    sed 's/\$EUID -eq 0/0 -eq 0/' safe-upgrade.sh > "$temp_script"
     
     # Should complain about running as root and exit with status 1
     run bash "$temp_script" --help

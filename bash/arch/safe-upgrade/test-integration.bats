@@ -4,19 +4,19 @@
 
 @test "script has valid bash syntax" {
     # Most important test - script should parse correctly
-    run bash -n ./safe-upgrade.sh
+    run bash -n safe-upgrade.sh
     [ "$status" -eq 0 ]
 }
 
 @test "script shows help and exits cleanly" {
-    run bash ./safe-upgrade.sh --help
+    run bash safe-upgrade.sh --help
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Usage:" ]]
     [[ "$output" =~ "Examples:" ]]
 }
 
 @test "script handles invalid arguments gracefully" {
-    run bash ./safe-upgrade.sh --not-a-real-option
+    run bash safe-upgrade.sh --not-a-real-option
     [ "$status" -eq 1 ]
     [[ "$output" =~ "Unknown option" ]]
 }
@@ -27,7 +27,7 @@
     temp_script=$(mktemp)
     
     # Copy script but change EUID check to simulate root
-    sed 's/\$EUID -eq 0/0 -eq 0/' ./safe-upgrade.sh > "$temp_script"
+    sed 's/\$EUID -eq 0/0 -eq 0/' safe-upgrade.sh > "$temp_script"
     
     run bash "$temp_script" --help
     [ "$status" -eq 1 ]
@@ -40,14 +40,14 @@
     # Test what happens when dependencies are missing
     # Create a version with PATH that doesn't include yay
     
-    run env PATH="/bin:/usr/bin" bash ./safe-upgrade.sh --help
+    run env PATH="/bin:/usr/bin" bash safe-upgrade.sh --help
     # Should still show help even if yay is missing
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Usage:" ]]
 }
 
 @test "all command line options are documented in help" {
-    run bash ./safe-upgrade.sh --help
+    run bash safe-upgrade.sh --help
     [ "$status" -eq 0 ]
     
     # Check that all the options we support are documented
@@ -60,7 +60,7 @@
 
 @test "script can display version or basic info" {
     # Test that the script can tell us something about itself
-    run bash ./safe-upgrade.sh --help
+    run bash safe-upgrade.sh --help
     [ "$status" -eq 0 ]
     
     # Should contain basic identifying information
